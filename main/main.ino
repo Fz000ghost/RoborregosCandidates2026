@@ -56,8 +56,8 @@ void setMotor(byte i, int8_t s) {
 
 // DISTANCE SENSORS
 
-const byte SENSOR_PIN[3] = {2, A4, A3};  // front, left, right
-int dist[3];                             // 1 = obstacle, 0 = clear
+const byte SENSOR_PIN[3] = {2, A4, A3}; 
+int dist[3];
 
 void readSensors() {
   for (byte i = 0; i < 3; i++) dist[i] = digitalRead(SENSOR_PIN[i]) == LOW;
@@ -65,8 +65,8 @@ void readSensors() {
 
 // ON DISTANCE DETECTION STOP SETUP
 
-const byte FRONT = 1;                  // index of the front sensor in dist[]
-const int8_t FWD[4] = {1, -1, 1, 1};   // same wheel signs as forward30()
+const byte FRONT = 1; 
+const int8_t FWD[4] = {1, -1, 1, 1};
 
 
 // ON INITIALIZATION
@@ -121,7 +121,7 @@ void loop() {
   delay(200);*/
 
   /*readSensors();
-  for (byte i = 0; i < 4; i++) setMotor(i, dist[FRONT] ? 0 : FWD[i]);   // blocked -> brake, clear -> forward
+  for (byte i = 0; i < 4; i++) setMotor(i, dist[FRONT] ? 0 : FWD[i]); 
 
   Serial.print("L F R: ");
   for (byte i = 0; i < 3; i++) { Serial.print(dist[i]); Serial.print(' '); }
