@@ -1,8 +1,5 @@
 // COLOR SENSOR
 
-const byte S2 = A1, S3 = A0, COLOR_OUT = A2;
-int rgb[3]; 
-
 int readFilter(byte s2, byte s3) {
   digitalWrite(S2, s2);
   digitalWrite(S3, s3);
@@ -29,6 +26,7 @@ const byte N_COLORS = sizeof(COLORS) / sizeof(COLORS[0]);
 
 
 const char *colorName() {
+  if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) return "NO SIGNAL";   // no pulses on OUT
   const char *best = "?";
   long bestD = 2147483647L;
   for (byte i = 0; i < N_COLORS; i++) {

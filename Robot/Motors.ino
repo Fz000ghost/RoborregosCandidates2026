@@ -1,19 +1,10 @@
 // WHEEL MOTORS
 
-struct Motor { byte en, a, b; int8_t dir; };
-
-Motor m[4] = {
-  {6, 11, 12, 1},  
-  {9, 13, 0, 1}, 
-  {3,  4,  7, 1},  
-  {5,  8, 10, 1},   
-};
-
-const byte SPEED = 255; 
-const unsigned MS_STRAIGHT = 1000;
-const unsigned MS_STRAFE = 1500; 
-const unsigned MS_TURN90 = 1000; 
-const bool WHEEL_TEST = false;
+void setMotor(byte i, int8_t s) {
+  s *= m[i].dir;
+  digitalWrite(m[i].a, s > 0);
+  digitalWrite(m[i].b, s < 0);   // both LOW = brake (EN is held HIGH by the jumper)
+}
 
 void drive(int8_t fl, int8_t fr, int8_t rl, int8_t rr, unsigned ms) {
   int8_t s[4] = {fl, fr, rl, rr};
