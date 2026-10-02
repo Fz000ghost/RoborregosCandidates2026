@@ -26,13 +26,12 @@ const int8_t FWD[4] = {1, -1, 1, 1};
 struct Motor { byte a, b; int8_t dir; };
 
 Motor m[4] = {
-  {11, 12, 1},
-  {13,  0, 1},
-  { 4,  7, 1},
-  { 8, 10, 1},
+  {13, 12, 1},
+  {11,  10, 1},
+  { 6,  7, 1},
+  { 8, 9, 1},
 };
 
-const byte SPEED = 255; 
 const unsigned MS_STRAIGHT = 1000;
 const unsigned MS_STRAFE = 1500; 
 const unsigned MS_TURN90 = 1000; 
