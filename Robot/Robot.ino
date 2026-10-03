@@ -18,30 +18,25 @@ int rgb[3];
 const byte SENSOR_PIN[3] = {2, A4, A3}; 
 int dist[3];
 
-// ON DISTANCE DETECTION STOP SETUP
-const byte FRONT = 1; 
-const int8_t FWD[4] = {1, -1, 1, 1};
-
 //MOTORS
 struct Motor { byte a, b; int8_t dir; };
 
 Motor m[4] = {
-  {13, 12, 1},
-  {11,  10, 1},
+  {13, 10, 1},
+  {12,  11, 1},
   { 6,  7, 1},
   { 8, 9, 1},
 };
 
-const unsigned MS_STRAIGHT = 1000;
-const unsigned MS_STRAFE = 1500; 
-const unsigned MS_TURN90 = 1000; 
+const unsigned MS_STRAIGHT = 1500;
+const unsigned MS_STRAFE = 15000; 
+const unsigned MS_TURN90 = 15000; 
 const bool WHEEL_TEST = false;
 
 
 // ON INITIALIZATION
 void setup() {
   Serial.begin(9600);
-  UCSR0B &= ~_BV(RXEN0);           // send only, so D0 still drives motor M2
 
   for (byte i = 0; i < 4; i++) {
     pinMode(m[i].a, OUTPUT);
@@ -50,10 +45,8 @@ void setup() {
   pinMode(S2, OUTPUT);
   pinMode(S3, OUTPUT);
 
-  claw.attach(CLAW_PIN);
-  claw.write(CLAW_OPEN);
 
-  delay(3000);                     // time to put the robot down
+  delay(3000);      
 
   if (WHEEL_TEST) {
     for (byte i = 0; i < 4; i++) {
@@ -89,22 +82,4 @@ void loop() {
   delay(200);
   
   
-
-  /*readSensors();
-  for (byte i = 0; i < 4; i++) setMotor(i, dist[FRONT] ? 0 : FWD[i]); 
-
-  Serial.print("L F R: ");
-  for (byte i = 0; i < 3; i++) { Serial.print(dist[i]); Serial.print(' '); }
-  Serial.println();
-  delay(20);*/
-
-  /*unsigned long t = millis();
-  int edges = 0;
-  byte last = digitalRead(A2);
-  while (millis() - t < 100) {
-    byte v = digitalRead(A2);
-    if (v != last) { edges++; last = v; }
-  }
-  Serial.print("edges per 100 ms: "); Serial.print(edges);
-  Serial.print("   OUT level: ");     Serial.println(last);*/
 }
