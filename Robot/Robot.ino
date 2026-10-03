@@ -35,7 +35,7 @@ Motor m[4] = {
 const unsigned MS_STRAIGHT = 1000;
 const unsigned MS_STRAFE = 1500; 
 const unsigned MS_TURN90 = 1000; 
-const bool WHEEL_TEST = true;
+const bool WHEEL_TEST = false;
 
 
 // ON INITIALIZATION
@@ -47,11 +47,11 @@ void setup() {
     pinMode(m[i].a, OUTPUT);
     pinMode(m[i].b, OUTPUT);
   }
-  //pinMode(S2, OUTPUT);
-  //pinMode(S3, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
 
-  //claw.attach(CLAW_PIN);
-  //claw.write(CLAW_OPEN);
+  claw.attach(CLAW_PIN);
+  claw.write(CLAW_OPEN);
 
   delay(3000);                     // time to put the robot down
 
@@ -63,31 +63,31 @@ void setup() {
     return;
   }
 
-  //forward30();     delay(1000);
-  //back30();        delay(1000);
-  //right30();       delay(1000);
-  //left30();        delay(1000);
-  //rotateRight90(); delay(1000);  
-  //rotateLeft90();  delay(1000);
-  //toggleClaw();    delay(1000);
+  forward30();     delay(1000);
+  back30();        delay(1000);
+  right30();       delay(1000);
+  left30();        delay(1000);
+  rotateRight90(); delay(1000);  
+  rotateLeft90();  delay(1000);
+  toggleClaw();    delay(1000);
 }
 
 // ON LOOP
 
 void loop() {
-  /*readSensors();
+  readSensors();
   Serial.print("L F R: ");
   for (byte i = 0; i < 3; i++) { Serial.print(dist[i]); Serial.print(' '); }
-  Serial.println();*/
+  Serial.println();
 
-  /*readColor();
+  readColor();
   Serial.print("R G B: ");
   for (byte i = 0; i < 3; i++) { Serial.print(rgb[i]); Serial.print(' '); }
   Serial.print("-> ");
   Serial.println(colorName());
   
   delay(200);
-  */
+  
   
 
   /*readSensors();
