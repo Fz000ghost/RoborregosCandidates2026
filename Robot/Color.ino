@@ -15,18 +15,21 @@ void readColor() {
 
 struct Ref { const char *name; int r, g, b; };
 Ref COLORS[] = {
-  {"WHITE",   20,  20,  18}, 
+  {"WHITE",   20,  20,  18},
   {"BLACK",  200, 210, 170},
   {"RED",     30, 110,  80},
   {"GREEN",   90,  60,  80},
   {"BLUE",   100,  80,  40},
   {"YELLOW",  25,  35,  70},
+  {"CYAN",    95,  45,  35},
+  {"ORANGE",  25,  75,  85},
+  {"PINK",    25,  90,  45},
 };
 const byte N_COLORS = sizeof(COLORS) / sizeof(COLORS[0]);
 
 
 const char *colorName() {
-  if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) return "NO SIGNAL";   // no pulses on OUT
+  if (rgb[0] == 0 && rgb[1] == 0 && rgb[2] == 0) return "NO SIGNAL"; 
   const char *best = "?";
   long bestD = 2147483647L;
   for (byte i = 0; i < N_COLORS; i++) {

@@ -1,7 +1,5 @@
 #include <Servo.h>
 
-
-
 // CLAW
 const byte CLAW_PIN = A5;
 const byte CLAW_OPEN = 90;
@@ -33,6 +31,17 @@ const unsigned MS_STRAFE = 15000;
 const unsigned MS_TURN90 = 15000; 
 const bool WHEEL_TEST = false;
 
+// MAZE
+const unsigned MS_SETTLE = 200;
+const int8_t DX[4] = {0, 1, 0, -1};
+const int8_t DY[4] = {1, 0, -1, 0};
+const byte GRID = 9;  
+const byte NO_SIDE = 255;
+bool visited[GRID][GRID];
+bool freeSide[4]; 
+byte posX = GRID / 2, posY = GRID / 2, heading = 0;
+byte path[GRID * GRID], pathLen = 0; 
+byte hist[2 * GRID * GRID], histLen = 0; 
 
 // ON INITIALIZATION
 void setup() {
@@ -46,7 +55,7 @@ void setup() {
   pinMode(S3, OUTPUT);
 
 
-  delay(3000);      
+  /*delay(3000);      
 
   if (WHEEL_TEST) {
     for (byte i = 0; i < 4; i++) {
@@ -63,12 +72,16 @@ void setup() {
   rotateRight90(); delay(1000);  
   rotateLeft90();  delay(1000);
   toggleClaw();    delay(1000);
+  */
+
+  explore();
+
 }
 
 // ON LOOP
 
 void loop() {
-  readSensors();
+  /*readSensors();
   Serial.print("L F R: ");
   for (byte i = 0; i < 3; i++) { Serial.print(dist[i]); Serial.print(' '); }
   Serial.println();
@@ -79,7 +92,7 @@ void loop() {
   Serial.print("-> ");
   Serial.println(colorName());
   
-  delay(200);
+  delay(200);*/
   
   
 }
