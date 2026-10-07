@@ -27,8 +27,8 @@ Motor m[4] = {
 };
 
 const unsigned MS_STRAIGHT = 1500;
-const unsigned MS_STRAFE = 15000; 
-const unsigned MS_TURN90 = 15000; 
+const unsigned MS_STRAFE = 1500; 
+const unsigned MS_TURN90 = 1850; 
 const bool WHEEL_TEST = false;
 
 // MAZE
@@ -53,9 +53,9 @@ void setup() {
   }
   pinMode(S2, OUTPUT);
   pinMode(S3, OUTPUT);
+  pinMode(COLOR_OUT, INPUT);
 
-
-  /*delay(3000);      
+  //delay(3000);      
 
   if (WHEEL_TEST) {
     for (byte i = 0; i < 4; i++) {
@@ -65,16 +65,16 @@ void setup() {
     return;
   }
 
-  forward30();     delay(1000);
+  /*forward30();     delay(1000);
   back30();        delay(1000);
   right30();       delay(1000);
   left30();        delay(1000);
   rotateRight90(); delay(1000);  
-  rotateLeft90();  delay(1000);
-  toggleClaw();    delay(1000);
-  */
+  rotateLeft90();  delay(1000);*/
+  //toggleClaw();    delay(1000);
+  
 
-  explore();
+  //explore();
 
 }
 
@@ -84,15 +84,15 @@ void loop() {
   /*readSensors();
   Serial.print("L F R: ");
   for (byte i = 0; i < 3; i++) { Serial.print(dist[i]); Serial.print(' '); }
-  Serial.println();
+  Serial.println();*/
 
-  readColor();
+  /*readColor();
   Serial.print("R G B: ");
   for (byte i = 0; i < 3; i++) { Serial.print(rgb[i]); Serial.print(' '); }
   Serial.print("-> ");
-  Serial.println(colorName());
+  Serial.println(colorName());*/
   
-  delay(200);*/
+  delay(200);
   
   
 }
