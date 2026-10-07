@@ -55,6 +55,10 @@ void setup() {
   pinMode(S3, OUTPUT);
   pinMode(COLOR_OUT, INPUT);
 
+  claw.attach(CLAW_PIN);
+  claw.write(CLAW_OPEN); 
+
+
   //delay(3000);      
 
   if (WHEEL_TEST) {
@@ -71,8 +75,9 @@ void setup() {
   left30();        delay(1000);
   rotateRight90(); delay(1000);  
   rotateLeft90();  delay(1000);*/
-  //toggleClaw();    delay(1000);
-  
+  toggleClaw();    delay(1000);
+  toggleClaw();    delay(1000);
+
 
   //explore();
 
@@ -93,6 +98,4 @@ void loop() {
   Serial.println(colorName());*/
   
   delay(200);
-  
-  
 }
