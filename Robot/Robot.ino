@@ -12,6 +12,9 @@ bool clawOpen = true;
 const byte S2 = A1, S3 = A0, COLOR_OUT = A2;
 int rgb[3]; 
 
+// LED RGB
+const int LED_R = 3, LED_G = 6, LED_B = 5;
+
 //DISTANCE
 const byte SENSOR_PIN[3] = {2, A4, A3}; 
 int dist[3];
@@ -22,13 +25,13 @@ struct Motor { byte a, b; int8_t dir; };
 Motor m[4] = {
   {13, 10, 1},
   {12,  11, 1},
-  { 6,  7, 1},
+  { 4,  7, 1},
   { 8, 9, 1},
 };
 
-const unsigned MS_STRAIGHT = 1500;
+const unsigned MS_STRAIGHT = 2450;
 const unsigned MS_STRAFE = 1500; 
-const unsigned MS_TURN90 = 1850; 
+const unsigned MS_TURN90 = 1673; 
 const bool WHEEL_TEST = false;
 
 // MAZE
@@ -55,11 +58,15 @@ void setup() {
   pinMode(S3, OUTPUT);
   pinMode(COLOR_OUT, INPUT);
 
+  pinMode(LED_R, OUTPUT);
+  pinMode(LED_G, OUTPUT);
+  pinMode(LED_B, OUTPUT);
+
   claw.attach(CLAW_PIN);
   claw.write(CLAW_OPEN); 
 
 
-  //delay(3000);      
+  delay(3000);      
 
   if (WHEEL_TEST) {
     for (byte i = 0; i < 4; i++) {
@@ -75,11 +82,13 @@ void setup() {
   left30();        delay(1000);
   rotateRight90(); delay(1000);  
   rotateLeft90();  delay(1000);*/
-  toggleClaw();    delay(1000);
-  toggleClaw();    delay(1000);
+  /*toggleClaw();    delay(1000);
+  toggleClaw();    delay(1000);*/
+  
 
-
+  //delay(1000);
   //explore();
+
 
 }
 
@@ -95,7 +104,9 @@ void loop() {
   Serial.print("R G B: ");
   for (byte i = 0; i < 3; i++) { Serial.print(rgb[i]); Serial.print(' '); }
   Serial.print("-> ");
-  Serial.println(colorName());*/
+  Serial.println(colorName());
   
+  displayColor();*/
+
   delay(200);
 }
