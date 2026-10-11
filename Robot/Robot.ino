@@ -1,6 +1,7 @@
 #include <Servo.h>
 
 // CLAW
+
 const byte CLAW_PIN = A5;
 const byte CLAW_OPEN = 90;
 const byte CLAW_CLOSED = 0;
@@ -8,45 +9,79 @@ const unsigned MS_CLAW = 500;
 Servo claw;
 bool clawOpen = true;
 
-// COLOR
-const byte S2 = A1, S3 = A0, COLOR_OUT = A2;
-int rgb[3]; 
+// COLOR SENSOR
 
-// LED RGB
+const byte S2 = A1, S3 = A0, COLOR_OUT = A2;
+int rgb[3];
+
+// RGB LED
+
 const int LED_R = 3, LED_G = 6, LED_B = 5;
 
-//DISTANCE
-const byte SENSOR_PIN[3] = {2, A4, A3}; 
+// DISTANCE SENSORS
+
+const byte SENSOR_PIN[3] = {2, A4, A3};
 int dist[3];
 
-//MOTORS
+// MOTORS
+
 struct Motor { byte a, b; int8_t dir; };
 
 Motor m[4] = {
   {13, 10, 1},
-  {12,  11, 1},
+  {12, 11, 1},
   { 4,  7, 1},
-  { 8, 9, 1},
+  { 8,  9, 1},
 };
 
-const unsigned MS_STRAIGHT = 2450;
-const unsigned MS_STRAFE = 1500; 
-const unsigned MS_TURN90 = 1673; 
-const bool WHEEL_TEST = false;
+// Wheel signs (FL, FR, RL, RR) for each direction.
+#define FWD    1, -1,  1, -1
+#define BACK  -1,  1, -1,  1
+#define RIGHT -1, -1,  1,  1
+#define LEFT   1,  1, -1, -1
 
-// MAZE
+const unsigned MS_STRAIGHT = 2450;
+const unsigned MS_STRAFE = 1500;
+const unsigned MS_TURN90 = 1673;
 const unsigned MS_SETTLE = 200;
+
+// MAZE (Pista A)
+
 const int8_t DX[4] = {0, 1, 0, -1};
 const int8_t DY[4] = {1, 0, -1, 0};
-const byte GRID = 9;  
+const byte GRID = 9;
 const byte NO_SIDE = 255;
 bool visited[GRID][GRID];
-bool freeSide[4]; 
+bool freeSide[4];
 byte posX = GRID / 2, posY = GRID / 2, heading = 0;
-byte path[GRID * GRID], pathLen = 0; 
-byte hist[2 * GRID * GRID], histLen = 0; 
+byte path[GRID * GRID], pathLen = 0;
+byte hist[2 * GRID * GRID], histLen = 0;
 
-// ON INITIALIZATION
+// LEVELS (Pista B)
+
+const bool TRACK_B = true;
+
+// INICIO changes per round: set it in calibration. Cells: 3x3 = 1..3 (x east, y north), CP1 at (4,2).
+// START_HEADING = direction the robot faces, into the 3x3: 0 N, 1 E, 2 S, 3 W. Drawn layout: (1, 0) facing N.
+const byte START_X = 1, START_Y = 0, START_HEADING = 0;
+
+const unsigned MS_GRAB_BACK = MS_STRAIGHT / 2;
+const long MS_PAST = MS_STRAIGHT / 15;
+const long MS_TO_GREEN = MS_STRAIGHT / 4;
+
+// Robot width
+const byte ROBOT_W_CM = 19;
+
+const long Y_LIM = (30L - ROBOT_W_CM / 2 - 2) * MS_STRAFE / 30;
+const long GAP_HALF = MS_STRAFE / 2;
+const unsigned MS_CROSS = 300;
+const unsigned MS_ONTO_CP2 = MS_STRAIGHT / 2;
+
+// MAIN
+
+// Runs once at power-up: sets every pin, opens the claw, waits 3 s to place the robot on its tile, 
+// then runs Pista B (levels) or Pista A (explore) depending on TRACK_B.
+To run a test, call it from Tests.ino here instead.*/
 void setup() {
   Serial.begin(9600);
 
@@ -63,50 +98,12 @@ void setup() {
   pinMode(LED_B, OUTPUT);
 
   claw.attach(CLAW_PIN);
-  claw.write(CLAW_OPEN); 
+  claw.write(CLAW_OPEN);
 
+  delay(3000);
 
-  delay(3000);      
-
-  if (WHEEL_TEST) {
-    for (byte i = 0; i < 4; i++) {
-      setMotor(i, 1); delay(1000);
-      setMotor(i, 0); delay(1000);
-    }
-    return;
-  }
-
-  /*forward30();     delay(1000);
-  back30();        delay(1000);
-  right30();       delay(1000);
-  left30();        delay(1000);
-  rotateRight90(); delay(1000);  
-  rotateLeft90();  delay(1000);*/
-  /*toggleClaw();    delay(1000);
-  toggleClaw();    delay(1000);*/
-  
-
-  //delay(1000);
-  //explore();
-
-
+  if (TRACK_B) levels();
+  else explore();
 }
 
-// ON LOOP
-
-void loop() {
-  /*readSensors();
-  Serial.print("L F R: ");
-  for (byte i = 0; i < 3; i++) { Serial.print(dist[i]); Serial.print(' '); }
-  Serial.println();*/
-
-  /*readColor();
-  Serial.print("R G B: ");
-  for (byte i = 0; i < 3; i++) { Serial.print(rgb[i]); Serial.print(' '); }
-  Serial.print("-> ");
-  Serial.println(colorName());
-  
-  displayColor();*/
-
-  delay(200);
-}
+void loop() {}
