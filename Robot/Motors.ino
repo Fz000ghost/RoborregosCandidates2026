@@ -46,7 +46,7 @@ void right30()       { rightMs(MS_STRAFE); }
 void left30()        { leftMs(MS_STRAFE); }
 
 // 90° turn right in place.
-void rotateRight90() { drive(1, 1, 1, 1, MS_TURN90); }
+void rotateRight90() { drive(1, 1, -1, 1, MS_TURN90); }
 
 // 90° turn left in place.
-void rotateLeft90()  { drive(-1, -1, -1, -1, MS_TURN90); }
+void rotateLeft90()  { drive(-1, -1, 1, -1, MS_TURN90); }

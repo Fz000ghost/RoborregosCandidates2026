@@ -22,7 +22,7 @@ void grab() {
 const byte RING[8][2] = {{1, 1}, {2, 1}, {3, 1}, {3, 2}, {3, 3}, {2, 3}, {1, 3}, {1, 2}};
 const byte SIDE[4] = {5, 3, 1, 7};
 
-// Index in RING of the robot's current tile (0 if it is not on the ring).
+// Index in RING of the robot's current tile.
 byte ringIndex() {
   for (byte i = 0; i < 8; i++) if (RING[i][0] == posX && RING[i][1] == posY) return i;
   return 0;
@@ -47,11 +47,9 @@ void ringTo(byte to) {
 // Sensor (0 L, 1 F, 2 R) that looks at the ball from the tile on side d of it; 3 = behind, no sensor.
 byte sensorTo(byte d) { return ((d + 2) % 4 + 5 - heading) % 4; }
 
-// Starts on INICIO (START_X, START_Y, set each round in calibration) facing into the 3x3,
-// and slides onto its ring tile. Checks the ball tile's visible sides, nearest unchecked first;
-// if all three are closed, the opening is the one behind. Goes to the opening, turns its tail toward
-// the ball and grabs it, then faces east (track forward for sections 2 and 3), slides to the E tile
-// and drives onto checkpoint 1.
+// Starts on INICIO facing into the 3x3, and slides onto its ring tile. Checks the ball tile's visible sides.
+// If all three are closed, the opening is the one behind. Goes to the opening, turns its tail toward
+// the ball and grabs it, then faces east, slides to the E tile and drives onto checkpoint 1.
 void section1() {
   posX = START_X; posY = START_Y; heading = START_HEADING;
   slide(heading);
@@ -77,8 +75,8 @@ void section1() {
   forward30();
 }
 
-// Drive forward until one raw read says WHITE (or RED if redStops), or until travel reaches `until`.
-// travel = forward ms since checkpoint 1. Returns the color that stopped it, or "" if it reached `until`.
+// Drive forward until one raw read says WHITE, or until travel reaches "until".
+// travel = forward ms since checkpoint 1. Returns the color that stopped it, or "" if it reached "until".
 const char *creep(bool redStops, long until, long &travel) {
   const char *c = "";
   unsigned long t0 = millis();
@@ -94,113 +92,61 @@ const char *creep(bool redStops, long until, long &travel) {
   return c;
 }
 
-// Sensor on a line: strafe along it from the left limit to the right limit, then center the robot on the gap.
-// y = sideways position in strafe ms from the middle (+ = right). A 2 s sweep takes ~60 of the N reads.
-// The gap is the longest run of green; up to 2 non-green samples inside it are flicker, not white, so they
-// don't split it, and the same 2-sample slack applies at the sweep's ends. If the gap runs past a limit,
-// only one edge was seen and the center is set GAP_HALF from it. Returns false if the sweep didn't see both
-// a gap and real white: a real line shows 10+ cm of white, while a few flickers on all-green mean the sensor
-// is off the line.
-bool centerOnGap(long &y) {
-  leftMs(y + Y_LIM);
-  const byte N = 80;
-  bool g[N];
-  unsigned t[N];
-  byte n = 0, whites = 0;
-  unsigned long t0 = millis();
-  setAll(RIGHT);
-  while (millis() - t0 < 2 * Y_LIM && n < N) {
-    readColor();
-    const char *c = colorName();
-    g[n] = !strcmp(c, "GREEN");
-    whites += !strcmp(c, "WHITE");
-    t[n++] = millis() - t0;
-  }
-  setAll(0, 0, 0, 0);
-  y = (long)(millis() - t0) - Y_LIM;
-  delay(MS_SETTLE);
-
-  byte bs = 0, bl = 0, start = 0, miss = 0;
-  bool in = false;
-  for (byte i = 0; i < n; i++) {
-    if (g[i]) {
-      if (!in) { in = true; start = i; }
-      miss = 0;
-      if (i + 1 - start > bl) { bl = i + 1 - start; bs = start; }
-    } else if (in && ++miss > 2) in = false;
-  }
-  byte be = bs + bl - 1;
-  bool atLeft = bs <= 2, atRight = be + 3 >= n;
-
-  if (bl < 3 || (atLeft && atRight) || whites < 6) return false;
-
-  long a = (long)t[bs] - Y_LIM, b = (long)t[be] - Y_LIM;
-  long c = atLeft  ? b - GAP_HALF
-         : atRight ? a + GAP_HALF
-         : (a + b) / 2;
-  c = constrain(c, -Y_LIM, Y_LIM);
-  if (c > y) rightMs(c - y); else leftMs(y - c);
-  y = c;
-  return true;
-}
-
-// Cross the line the sensor reaches near travel `at`. The 30 cm gap is narrower than the sweep, so the line
-// is under at least one sweep end: creep forward at each end until the sensor stops on white, then sweep there.
-// Stopping on the sensor (not on timing) is what keeps short, slow-starting moves from missing the line.
-bool crossLine(long at, long &travel, long &y) {
-  for (int8_t end = -1; end <= 1; end += 2) {
-    long d = at - 2 * MS_PAST - travel;
-    if (d > 0) fwdMs(d); else backMs(-d);
-    travel = at - 2 * MS_PAST;
-    long to = end * Y_LIM;
-    if (to > y) rightMs(to - y); else leftMs(y - to);
-    y = to;
-    if (!strcmp(creep(false, at + MS_PAST, travel), "WHITE") && centerOnGap(y)) return true;
-  }
+// Sensor at sideways position `to` (strafe ms from the middle, + = right) creeps toward the line at travel `at`.
+// Starts 2 * MS_PAST short and stops by MS_PAST past it, so the front wheels stay behind the line.
+// Returns true if it stopped on white there (one bad white read on green is ignored).
+bool lineAt(long to, long at, long &travel, long &y) {
+  long d = at - 2 * MS_PAST - travel;
+  if (d > 0) fwdMs(d); else backMs(-d);
+  travel = at - 2 * MS_PAST;
+  if (to > y) rightMs(to - y); else leftMs(y - to);
+  y = to;
+  while (!strcmp(creep(false, at + MS_PAST, travel), "WHITE"))
+    if (!strcmp(tileColor(70), "WHITE")) return true;
   return false;
 }
 
-// 2x4 green tiles; on each of the 3 tile boundaries inside it, a white line with a 30 cm gap.
-// travel = forward ms since checkpoint 1, y = sideways ms from the middle (+ = right), origin = travel when
-// the sensor reaches the green. The white border before the green sets where the boundaries are, and every
-// line found resets it, so the timing error never adds up. For each boundary k: creep to just short of it,
-// ignore one bad white read on green, then sweep for the gap. A line found far from the boundary is not
-// boundary k, so k stays ahead. Afterwards the sensor is moved clear of the line.
-// Shortcut: if no sweep finds the line, the robot drives on from wherever it is.
-// Then it crosses the white border to checkpoint 2, stops if it overshoots, returns to the middle, and
-// moves its body onto checkpoint 2.
+// The start row comes from the left sensor in column 1  (free = the top row is beside it = robot in the bottom row). 
+// At each boundary it probes GAP_HALF / 2 from the middle, its own side first: white there = line covers that row, go to the other. 
+// White only on the other side = go to its own row. No white = gap in the middle. A centered line has no white at either probe, 
+// so one more probe at Y_LIM finds its end piece to resync. In column 4 it steps into a row and switches rows if the front sensor 
+// sees a wall, then crosses the white border and moves onto checkpoint 2.
 void section2() {
   long travel = 0, y = 0;
   long origin = MS_TO_GREEN;
   if (!strcmp(creep(false, MS_STRAIGHT / 2, travel), "WHITE")) origin = travel;
   fwdMs(MS_CROSS);
   travel += MS_CROSS;
-  byte k = 1;
-  while (k <= 3) {
+  long probe = origin + MS_STRAIGHT - 2 * MS_PAST;
+  fwdMs(probe - travel);
+  travel = probe;
+  y = isFree(0) ? GAP_HALF : -GAP_HALF;
+  for (byte k = 1; k <= 3; k++) {
     long at = origin + (long)k * MS_STRAIGHT;
-    bool raw = !strcmp(creep(false, at - 2 * MS_PAST, travel), "WHITE");
-    bool white = raw && !strcmp(tileColor(70), "WHITE");
-    bool near = travel > at - 3 * MS_PAST;
-    if (raw && !white && !near) continue;
-
-    bool swept = (white && centerOnGap(y)) || crossLine(white ? travel : at, travel, y);
-    if (near && swept) origin = travel - (long)k * MS_STRAIGHT;
-    if (near) k++;
-    fwdMs(2 * MS_PAST);
-    travel += 2 * MS_PAST;
+    long s = y < 0 ? -1 : 1;
+    bool own = lineAt(s * GAP_HALF / 2, at, travel, y);
+    bool other = !own && lineAt(-s * GAP_HALF / 2, at, travel, y);
+    if (own || other || lineAt(-s * Y_LIM, at, travel, y)) origin = travel - (long)k * MS_STRAIGHT;
+    long gap = own ? -s * GAP_HALF : other ? s * GAP_HALF : 0;
+    if (gap > y) rightMs(gap - y); else leftMs(y - gap);
+    y = gap;
   }
+  long end = origin + 4L * MS_STRAIGHT - 3 * MS_PAST;
+  fwdMs(end - travel);
+  travel = end;
+  if (!y) { rightMs(GAP_HALF); y = GAP_HALF; }
+  if (!isFree(1)) { if (y > 0) leftMs(2 * y); else rightMs(-2 * y); y = -y; }
   while (true) {
     const char *c = creep(true, origin + 5L * MS_STRAIGHT, travel);
     if (!strcmp(c, "RED")) { if (isRed()) break; continue; }
     if (!strcmp(c, "WHITE")) { fwdMs(MS_CROSS); travel += MS_CROSS; continue; }
     break;
   }
-  if (y > 0) leftMs(y); else rightMs(-y);
   fwdMs(MS_ONTO_CP2);
 }
 
 // Tile colors are directions in the track's frame, and the robot never turns, so each color
-// is one move (red = checkpoint 2, the path starts ahead). Stops on GREEN (FIN) or 3 unclear reads in a row.
+// is one move (red = checkpoint 2, the path starts ahead). Stops on Light Green (FIN) or 3 unclear reads in a row.
 void section3() {
   byte unclear = 0;
   while (unclear < 3) {
@@ -210,13 +156,13 @@ void section3() {
     else if (!strcmp(c, "PINK"))   back30();
     else if (!strcmp(c, "CYAN"))   right30();
     else if (!strcmp(c, "YELLOW")) left30();
-    else if (!strcmp(c, "GREEN"))  return;
+    else if (!strcmp(c, "Light Green")) return;
     else { unclear++; continue; }
     unclear = 0;
   }
 }
 
-// Starting on red means a restart on a checkpoint after a lack of progress: it peeks at the
+// Starting on red means a restart on a checkpoint after a lack of progress. It peeks at the
 // next tile (green = checkpoint 1, so run section 2; else checkpoint 2) and backs up. Otherwise it runs
 // sections 1 and 2. Section 3 always runs last.
 void levels() {

@@ -35,14 +35,14 @@ Motor m[4] = {
 };
 
 // Wheel signs (FL, FR, RL, RR) for each direction.
-#define FWD    1, -1,  1, -1
-#define BACK  -1,  1, -1,  1
-#define RIGHT -1, -1,  1,  1
-#define LEFT   1,  1, -1, -1
+#define FWD    1, -1,  -1, -1
+#define BACK  -1,  1, 1,  1
+#define RIGHT -1, -1,  -1,  1
+#define LEFT   1,  1, 1, -1
 
 const unsigned MS_STRAIGHT = 2450;
-const unsigned MS_STRAFE = 1500;
-const unsigned MS_TURN90 = 1673;
+const unsigned MS_STRAFE = 2450;
+const unsigned MS_TURN90 = 1670;
 const unsigned MS_SETTLE = 200;
 
 // MAZE (Pista A)
@@ -59,7 +59,7 @@ byte hist[2 * GRID * GRID], histLen = 0;
 
 // LEVELS (Pista B)
 
-const bool TRACK_B = true;
+const bool TRACK_B = false;
 
 // INICIO changes per round: set it in calibration. Cells: 3x3 = 1..3 (x east, y north), CP1 at (4,2).
 // START_HEADING = direction the robot faces, into the 3x3: 0 N, 1 E, 2 S, 3 W. Drawn layout: (1, 0) facing N.
@@ -81,7 +81,7 @@ const unsigned MS_ONTO_CP2 = MS_STRAIGHT / 2;
 
 // Runs once at power-up: sets every pin, opens the claw, waits 3 s to place the robot on its tile, 
 // then runs Pista B (levels) or Pista A (explore) depending on TRACK_B.
-To run a test, call it from Tests.ino here instead.*/
+//To run a test, call it from Tests.ino here instead.
 void setup() {
   Serial.begin(9600);
 
@@ -102,8 +102,11 @@ void setup() {
 
   delay(3000);
 
+  
   if (TRACK_B) levels();
   else explore();
+
+  
 }
 
-void loop() {}
+void loop() {testColor();}

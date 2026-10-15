@@ -17,13 +17,14 @@ void readColor() {
 
 struct Ref { const char *name; int r, g, b; };
 Ref COLORS[] = {
-  {"WHITE",   30,  30,  30},
-  {"RED",     35, 160, 100},
-  {"GREEN",   85,  60,  70},
-  {"YELLOW",  20,  30,  45},
-  {"CYAN",    45,  30,  20},
-  {"ORANGE",  30,  80,  80},
-  {"PINK",    30,  80,  50},
+  {"WHITE",   8,  8,  7},
+  {"RED",     10, 27, 21},
+  {"GREEN",   27,  22,  23},
+  {"YELLOW",  7,  9,  13},
+  {"CYAN",    25,  13,  9},
+  {"ORANGE",  9,  19,  19},
+  {"PINK",    5,  15,  9},
+  {"Light Green",    7,  7,  11}
 };
 const byte N_COLORS = sizeof(COLORS) / sizeof(COLORS[0]);
 
@@ -39,7 +40,7 @@ const char *colorName() {
   return best;
 }
 
-// Tile color by vote: 15 reads, returns the most common color if it got at least minPct % of the votes, else "?".
+// Tile color by vote. 15 reads, returns the most common color if it got at least minPct % of the votes, else "?".
 const char *tileColor(byte minPct) {
   const byte N = 15;
   byte votes[N_COLORS] = {0};
@@ -64,7 +65,7 @@ void setLed(byte r, byte g, byte b) {
 void displayColor(const char *c) {
   if      (!strcmp(c, "WHITE"))  setLed(255, 255, 255);
   else if (!strcmp(c, "RED"))    setLed(255, 0, 0);
-  else if (!strcmp(c, "GREEN"))  setLed(0, 255, 0);
+  else if (!strcmp(c, "GREEN") || !strcmp(c, "Light Green")) setLed(0, 255, 0);
   else if (!strcmp(c, "YELLOW")) setLed(255, 100, 0);
   else if (!strcmp(c, "CYAN"))   setLed(0, 255, 255);
   else if (!strcmp(c, "ORANGE")) setLed(255, 40, 0);

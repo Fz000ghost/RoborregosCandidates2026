@@ -1,7 +1,6 @@
 // MAZE (Pista A)
 
-// Marks which sides (L, F, R) are open in freeSide[], by majority of 3 reads: one bad read
-// must not hide an opening or invent one. (isFree() is wrong here: it says "wall" on any single wall read.)
+// Marks which sides (L, F, R) are open in freeSide[], by majority of 3 reads: one bad read must not hide an opening or invent one.
 void scan() {
   byte frees[3] = {0, 0, 0};
   for (byte k = 0; k < 3; k++) {
@@ -29,7 +28,7 @@ void step(byte d) {
   posY += DY[d];
 }
 
-// One tile toward d without turning (mecanum strafe), and updates the position.
+// One tile toward d without turning, and updates the position.
 void slide(byte d) {
   byte r = (d + 4 - heading) % 4;
   if (r == 0) forward30(); else if (r == 1) right30(); else if (r == 2) back30(); else left30();
@@ -37,7 +36,7 @@ void slide(byte d) {
   posY += DY[d];
 }
 
-// True if the tile is red, with a stricter vote than other colors: a flicker on orange or pink must not end the search.
+// True if the tile is red, with a stricter vote than other colors.
 bool isRed() {
   return !strcmp(tileColor(80), "RED");
 }
