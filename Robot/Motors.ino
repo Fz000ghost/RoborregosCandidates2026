@@ -1,4 +1,4 @@
-// WHEEL MOTORS
+// Wheel motors
 
 // One wheel. s: +1 forward, -1 backward, 0 stop (dir flips wheels mounted the other way).
 void setMotor(byte i, int8_t s) {
@@ -13,19 +13,19 @@ void setAll(int8_t fl, int8_t fr, int8_t rl, int8_t rr) {
   for (byte i = 0; i < 4; i++) setMotor(i, s[i]);
 }
 
-// WHEEL SIGNS FOR A RIGHT TURN IN PLACE.
+// Wheel signs for a right turn in place.
 const int8_t TURN_R[4] = {ROT_R};
 
-// ALL FOUR WHEELS SPIN IN PLACE: 1 RIGHT, -1 LEFT, 0 STOP.
+// All four wheels spin in place: 1 right, -1 left, 0 stop.
 void spin(int8_t dir) {
   for (byte i = 0; i < 4; i++) setMotor(i, dir * TURN_R[i]);
 }
 
-// SETS THE WHEELS TO A MOVE WHILE HOLDING yawTarget. PAST HOLD_DEG OFF, EACH WHEEL GETS THE SIGN OF MOVE + TURN:
-// WHEELS FIGHTING THE TURN STOP, SO THE ROBOT DOES HALF THE MOVE PLUS HALF THE TURN. TRUE WHILE CORRECTING.
+// Sets the wheels to a move while holding yawTarget. Past HOLD_DEG off, each wheel gets the sign of move + turn:
+// wheels fighting the turn stop, so the robot does half the move plus half the turn. True while correcting.
 bool steer(int8_t fl, int8_t fr, int8_t rl, int8_t rr) {
   updateYaw();
-  float e = yaw - yawTarget;                                // + = LEFT OF TARGET: TURN RIGHT
+  float e = yaw - yawTarget;                                // + = left of target: turn right
   int8_t c = e > HOLD_DEG ? 1 : e < -HOLD_DEG ? -1 : 0;
   int8_t s[4] = {fl, fr, rl, rr};
   for (byte i = 0; i < 4; i++) setMotor(i, constrain(s[i] + c * TURN_R[i], -1, 1));
@@ -33,7 +33,7 @@ bool steer(int8_t fl, int8_t fr, int8_t rl, int8_t rr) {
 }
 
 // All four wheels for ms milliseconds, then stop and wait MS_SETTLE.
-// HOLDS HEADING ON THE WAY; TIME SPENT CORRECTING COUNTS HALF, SINCE THE ROBOT ONLY GOES HALF AS FAR.
+// Holds heading on the way; time spent correcting counts half, since the robot only goes half as far.
 void drive(int8_t fl, int8_t fr, int8_t rl, int8_t rr, unsigned ms) {
   unsigned long done = 0, last = micros();
   while (done < ms * 1000UL) {
@@ -46,15 +46,15 @@ void drive(int8_t fl, int8_t fr, int8_t rl, int8_t rr, unsigned ms) {
   imuWait(MS_SETTLE);
 }
 
-// TURNS 90° IN PLACE (dir 1 = RIGHT, -1 = LEFT) TO AN EXACT MULTIPLE OF 90°, SO ERRORS NEVER ADD UP:
-// SPINS UNTIL TURN_LEAD_DEG SHORT, COASTS, THEN NUDGES UNTIL WITHIN TURN_TOL_DEG. 2 * MS_TURN90 IS A SAFETY TIMEOUT.
+// Turns 90° in place (dir 1 = right, -1 = left) to an exact multiple of 90°, so errors never add up:
+// spins until TURN_LEAD_DEG short, coasts, then nudges until within TURN_TOL_DEG. 2 * MS_TURN90 is a safety timeout.
 void turn90(int8_t dir) {
   yawTarget -= dir * 90;
   unsigned long t0 = millis();
   spin(dir);
   while (millis() - t0 < 2UL * MS_TURN90) {
     updateYaw();
-    if (dir * (yaw - yawTarget) < TURN_LEAD_DEG) break;   // DEGREES STILL TO GO
+    if (dir * (yaw - yawTarget) < TURN_LEAD_DEG) break;   // Degrees still to go
   }
   spin(0);
   imuWait(MS_SETTLE);
@@ -78,16 +78,16 @@ void rightMs(unsigned ms) { drive(RIGHT, ms); }
 // Strafe left for ms milliseconds.
 void leftMs(unsigned ms)  { drive(LEFT, ms); }
 
-// WHEEL SIGNS PER MOVE, IN slide() ORDER: 0 FWD, 1 RIGHT, 2 BACK, 3 LEFT.
+// Wheel signs per move, in slide() order: 0 FWD, 1 RIGHT, 2 BACK, 3 LEFT.
 const int8_t MOVE[4][4] = {{FWD}, {RIGHT}, {BACK}, {LEFT}};
-// SENSOR FACING EACH MOVE (ITS READING DROPS) AND THE ONE FACING AWAY (IT GROWS). 4 SENSORS: EVERY MOVE HAS BOTH.
+// Sensor facing each move (its reading drops) and the one facing away (it grows). 4 sensors: every move has both.
 const byte TOWARD[4] = {1, 2, 3, 0};
 const byte AWAY[4]   = {3, 0, 1, 2};
 
-// MOVES cm TOWARD dir (0 FWD, 1 RIGHT, 2 BACK, 3 LEFT) WITHOUT TURNING, MEASURED BY A WALL: THE SENSOR FACING
-// THE MOVE MUST DROP BY cm, OR IF IT CAN'T SEE ONE, THE SENSOR FACING AWAY MUST GROW BY cm. THE REST IS TIMED IF:
-// NO WALL IN RANGE, ROBOT TILTED AT THE START (RAMP), OR 3 BAD READS IN A ROW (ECHO LOST, OR A JUMP = THE BEAM
-// HIT THE FLOOR/WENT OVER A WALL ON A RAMP). NEVER RUNS MORE THAN 1.5x ITS TIMED LENGTH.
+// Moves cm toward dir (0 FWD, 1 RIGHT, 2 BACK, 3 LEFT) without turning, measured by a wall: the sensor facing
+// the move must drop by cm, or if it can't see one, the sensor facing away must grow by cm. The rest is timed if:
+// no wall in range, robot tilted at the start (ramp), or 3 bad reads in a row (echo lost, or a jump = the beam
+// hit the floor/went over a wall on a ramp). Never runs more than 1.5x its timed length.
 void moveCm(byte dir, int cm) {
   const int8_t *w = MOVE[dir];
   unsigned long msPerTile = dir % 2 ? MS_STRAFE : MS_STRAIGHT;
@@ -132,35 +132,35 @@ void right30()       { moveCm(1, 30); }
 // One 30 cm tile to the left, without turning.
 void left30()        { moveCm(3, 30); }
 
-// MOVES TO THE MIDDLE BETWEEN THE WALL SEEN BY SENSOR a AND THE ONE SEEN BY THE OPPOSITE SENSOR b:
-// BOTH WALLS = AVERAGE OF BOTH, ONE WALL = ITS CENTER READING, NO WALL = STAYS. toA / toB = MOVE INDEX TOWARD a / b.
-// EACH TRY MOVES BY THE MEASURED ERROR ON TIME (AT LEAST NUDGE_MS), THEN MEASURES AGAIN. AT MOST 10 TRIES.
+// Moves to the middle between the wall seen by sensor a and the one seen by the opposite sensor b:
+// both walls = average of both, one wall = its center reading, no wall = stays. toA / toB = move index toward a / b.
+// Each try moves by the measured error on time (at least NUDGE_MS), then measures again. At most 10 tries.
 void centerAxis(byte a, byte b, byte toA, byte toB) {
   unsigned long msPerTile = toA % 2 ? MS_STRAFE : MS_STRAIGHT;
   for (byte k = 0; k < 10; k++) {
     int da = readCm(a), db = readCm(b);
     bool wa = isWall(a, da), wb = isWall(b, db);
-    int ea = da - CENTER_CM[a], eb = CENTER_CM[b] - db;   // EACH SENSOR'S OWN "HOW FAR FROM CENTERED"
-    int e = wa && wb ? (ea + eb) / 2 : wa ? ea : wb ? eb : 0;   // + = GO TOWARD a
+    int ea = da - CENTER_CM[a], eb = CENTER_CM[b] - db;   // Each sensor's own "how far from centered"
+    int e = wa && wb ? (ea + eb) / 2 : wa ? ea : wb ? eb : 0;   // + = go toward a
     if (abs(e) <= CENTER_TOL_CM) break;
     const int8_t *w = MOVE[e > 0 ? toA : toB];
     drive(w[0], w[1], w[2], w[3], max((unsigned long)NUDGE_MS, abs(e) * msPerTile / 30));
   }
 }
 
-// CENTERS ON THE TILE: SIDEWAYS (LEFT / RIGHT WALLS), THEN FRONT-BACK (FRONT / BACK WALLS, NOT WHILE TILTED ON A RAMP).
+// Centers on the tile: sideways (left / right walls), then front-back (front / back walls, not while tilted on a ramp).
 void center() {
   centerAxis(0, 2, 3, 1);
   if (!tilted()) centerAxis(1, 3, 0, 2);
 }
 
-// SIDEWAYS POSITION IN CM FROM THE MIDDLE BETWEEN THE SIDE WALLS (+ = RIGHT), OR fallback IF A SIDE DOESN'T READ.
+// Sideways position in cm from the middle between the side walls (+ = right), or fallback if a side doesn't read.
 long sideY(long fallback) {
   int l = readCm(0), r = readCm(2);
   return l && r ? (l - r) / 2 : fallback;
 }
 
-// STRAFES TO y CM FROM THE MIDDLE BETWEEN THE SIDE WALLS. yWas = WHERE IT SHOULD BE NOW, USED IF A SIDE DOESN'T READ.
+// Strafes to y cm from the middle between the side walls. yWas = where it should be now, used if a side doesn't read.
 void strafeTo(long y, long yWas) {
   long d = y - sideY(yWas);
   if (d > CENTER_TOL_CM) moveCm(1, d);

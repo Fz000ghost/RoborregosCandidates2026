@@ -1,12 +1,12 @@
-// COLOR SENSOR
+// Color sensor
 
-// THE SENSOR AND THE LED ARE ON THE COLOR BOARD (SECOND UNO). IT SENDS THE INDEX OF THE COLOR IT SAW,
-// SO THESE NAMES MUST BE IN THE SAME ORDER AS COLORS[] IN ColorBoard.ino.
+// The sensor and the LED are on the color board (second Uno). It sends the index of the color it saw,
+// so these names must be in the same order as COLORS[] in ColorBoard.ino.
 const char *COLOR_NAMES[] = {"WHITE", "RED", "GREEN", "YELLOW", "CYAN", "ORANGE", "PINK", "Light Green"};
 const byte N_COLORS = sizeof(COLOR_NAMES) / sizeof(COLOR_NAMES[0]);
-byte colorCount = 0;   // THE BOARD'S READ COUNTER AT THE LAST getColor(): IT CHANGES WITH EVERY NEW READ
+byte colorCount = 0;   // The board's read counter at the last getColor(): it changes with every new read
 
-// LATEST COLOR THE BOARD READ (UNDER 1 MS); "NO SIGNAL" IF A CHANNEL READ 0, "?" IF THE BOARD DIDN'T ANSWER.
+// Latest color the board read (under 1 ms); "NO SIGNAL" if a channel read 0, "?" if the board didn't answer.
 const char *getColor() {
   if (Wire.requestFrom(COLOR_ADDR, (byte)2) != 2) return "?";
   byte i = Wire.read();
@@ -15,7 +15,7 @@ const char *getColor() {
 }
 
 // Tile color by vote. 15 reads, returns the most common color if it got at least minPct % of the votes, else "?".
-// EACH VOTE IS A NEW READ OF THE BOARD (ITS COUNTER CHANGED). NO NEW READ FOR 1 S = "?".
+// Each vote is a new read of the board (its counter changed). No new read for 1 s = "?".
 const char *tileColor(byte minPct) {
   const byte N = 15;
   byte votes[N_COLORS] = {0};
@@ -24,7 +24,7 @@ const char *tileColor(byte minPct) {
   unsigned long t0 = millis();
   for (byte i = 0; i < N; ) {
     if (millis() - t0 > 1000) return "?";
-    delay(5);   // THE BOARD READS ~30 TIMES/S: DON'T FLOOD IT WITH REQUESTS
+    delay(5);   // The board reads ~30 times/s: don't flood it with requests
     const char *c = getColor();
     if (colorCount == last) continue;
     last = colorCount;
@@ -38,7 +38,7 @@ const char *tileColor(byte minPct) {
 }
 
 // Shows color name c on the RGB LED; anything unknown turns it off.
-// SENDS THE COLOR'S INDEX TO THE BOARD, WHICH DRIVES THE LED (255 = OFF).
+// Sends the color's index to the board, which drives the LED (255 = off).
 void displayColor(const char *c) {
   byte i = 0;
   while (i < N_COLORS && strcmp(c, COLOR_NAMES[i])) i++;

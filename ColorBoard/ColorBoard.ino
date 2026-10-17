@@ -1,9 +1,6 @@
 #include <Wire.h>
 
-// COLOR BOARD (SECOND UNO): READS THE COLOR SENSOR NONSTOP AND DRIVES THE RGB LED.
-// THE MAIN UNO ASKS FOR THE LATEST COLOR AND SETS THE LED OVER I2C; THIS BOARD IS ADDRESS 0x08.
-// WIRING: S2 A1, S3 A0, OUT A2, LED R 3 / G 6 / B 5, SDA/SCL TO THE MAIN UNO'S SDA/SCL, COMMON GROUND.
-// IF YOU CHANGE THE ORDER OF COLORS[], CHANGE COLOR_NAMES[] IN THE MAIN SKETCH'S Color.ino THE SAME WAY.
+// COLOR BOARD
 
 const byte COLOR_ADDR = 0x08;
 
@@ -17,14 +14,14 @@ int rgb[3];
 const int LED_R = 3, LED_G = 6, LED_B = 5;
 
 // SHARED WITH THE I2C HANDLERS (THEY RUN AS INTERRUPTS)
-volatile byte lastColor = 255;   // INDEX IN COLORS[] OF THE LATEST READ, 255 = NO SIGNAL
-volatile byte readCount = 0;     // +1 PER READ, SO THE MAIN UNO KNOWS A READ IS NEW
-volatile byte ledColor = 255;    // INDEX THE MAIN UNO ASKED TO SHOW, 255 = OFF
+volatile byte lastColor = 255;   // index in COLORS[] of the latest read
+volatile byte readCount = 0; 
+volatile byte ledColor = 255;    // Index the main Uno requested
 volatile bool ledNew = false;
 
 // COLOR SENSOR
 
-// One color channel: sets the S2/S3 filter, waits 10 ms, returns the pulse length (0 = no signal).
+// One color channel. sets the S2/S3 filter, waits 10 ms, returns the pulse length.
 int readFilter(byte s2, byte s3) {
   digitalWrite(S2, s2);
   digitalWrite(S3, s3);
@@ -83,19 +80,19 @@ void displayColor(const char *c) {
   else                           setLed(0, 0, 0);
 }
 
-// INDEX IN COLORS[] OF NAME c (colorName() RETURNS ONE OF THOSE POINTERS), 255 IF NONE.
+// Index IN COLORS[] OF name c, 255 IF NONE.
 byte indexOf(const char *c) {
   for (byte k = 0; k < N_COLORS; k++) if (c == COLORS[k].name) return k;
   return 255;
 }
 
-// MAIN UNO ASKS: SEND [COLOR INDEX, READ COUNTER].
+// On request of the main Uno, register the color.
 void onRequest() {
   byte b[2] = {lastColor, readCount};
   Wire.write(b, 2);
 }
 
-// MAIN UNO SENDS ONE BYTE: THE COLOR TO SHOW ON THE LED. SHOWN FROM loop(), NOT INSIDE THE INTERRUPT.
+// Main Uno sends the color to show on the LED.
 void onReceive(int) {
   while (Wire.available()) ledColor = Wire.read();
   ledNew = true;
@@ -114,7 +111,7 @@ void setup() {
   Wire.onReceive(onReceive);
 }
 
-// READS ONE COLOR (~30 MS), PUBLISHES IT, UPDATES THE LED IF ASKED, AND PRINTS "R G B: r g b -> NAME" FOR CALIBRATING COLORS[].
+// Reads one color, sends it to the main Uno, updates the LED
 void loop() {
   readColor();
   const char *c = colorName();

@@ -1,4 +1,4 @@
-// TESTS
+// Tests
 
 // Spins FL, FR, RL, RR one at a time: 1 s forward, 1 s stopped. Each wheel should spin forward.
 void testWheels() {
@@ -34,8 +34,8 @@ void testClaw() {
 }
 
 // Prints the three distance sensors to Serial as "L F R: 0 1 0" (1 = wall).
-// NOW FOUR SENSORS, CM FIRST, THEN THE WALL FLAGS: "L F R B: 5 34 6 5 cm  walls: 1 0 1 1".
-// USE IT TO SET SIDE_CENTER_CM / FRONT_CENTER_CM / BACK_CENTER_CM.
+// Now four sensors, cm first, then the wall flags: "L F R B: 5 34 6 5 cm  walls: 1 0 1 1".
+// Use it to set SIDE_CENTER_CM / FRONT_CENTER_CM / BACK_CENTER_CM.
 void testDistance() {
   int cm[4];
   for (byte i = 0; i < 4; i++) cm[i] = readCm(i);
@@ -49,8 +49,8 @@ void testDistance() {
 }
 
 // Prints the raw R G B readings and the matched color to Serial, and shows it on the LED.
-// RAW R G B NOW PRINT ON THE COLOR BOARD'S OWN SERIAL (115200); THIS PRINTS THE COLOR IT SENDS AND SHOWS IT,
-// SO IT ALSO TESTS THE I2C LINK ("?" = THE BOARD ISN'T ANSWERING).
+// Raw R G B now print on the color board's own Serial (115200); this prints the color it sends and shows it,
+// so it also tests the I2C link ("?" = the board isn't answering).
 void testColor() {
   const char *c = getColor();
   Serial.print("Color board: ");
@@ -61,20 +61,20 @@ void testColor() {
   delay(200);
 }
 
-// CALL FROM loop(). TURN THE ROBOT BY HAND: LED GREEN = LEFT OF WHERE IT STARTED, RED = RIGHT, OFF = WITHIN 2°.
-// IF A LEFT TURN SHOWS RED, SET GYRO_SIGN = -1.
+// Call from loop(). Turn the robot by hand: LED green = left of where it started, red = right, off = within 2°.
+// If a left turn shows red, set GYRO_SIGN = -1.
 void testImu() {
   updateYaw();
   displayColor(yaw > 2 ? "GREEN" : yaw < -2 ? "RED" : "");
 }
 
-// CALL FROM loop(). CENTERS ON THE TILE, THEN WAITS 5 S: MOVE THE ROBOT OFF-CENTER BY HAND MEANWHILE.
+// Call from loop(). Centers on the tile, then waits 5 s: move the robot off-center by hand meanwhile.
 void testCenter() {
   center();
   delay(5000);
 }
 
-// CALL FROM loop(). LED WHITE WHILE THE ROBOT IS TILTED (RAMP SLOPE), OFF WHEN FLAT. TRY IT ON THE RAMP, STOPPED.
+// Call from loop(). LED white while the robot is tilted (ramp slope), off when flat. Try it on the ramp, stopped.
 void testTilt() {
   displayColor(tilted() ? "WHITE" : "");
   delay(100);

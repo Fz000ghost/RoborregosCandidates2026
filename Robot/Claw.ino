@@ -1,4 +1,4 @@
-// CLAW SERVO
+// Claw servo
 
 // Opens (true) or closes (false) the claw and waits MS_CLAW for it to move. Does nothing if it's already there.
 void setClaw(bool open) {

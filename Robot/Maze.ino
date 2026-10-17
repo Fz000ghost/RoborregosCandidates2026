@@ -1,7 +1,7 @@
-// MAZE (Pista A)
+// Maze (Pista A)
 
 // Marks which sides (L, F, R) are open in freeSide[], by majority of 3 reads: one bad read must not hide an opening or invent one.
-// NOW ALSO THE BACK (i = 3): (heading + 3 + 3) % 4 IS THE SIDE BEHIND, SO THE SAME FORMULA WORKS.
+// Now also the back (i = 3): (heading + 3 + 3) % 4 is the side behind, so the same formula works.
 void scan() {
   byte frees[4] = {0, 0, 0, 0};
   for (byte k = 0; k < 3; k++) {
@@ -25,7 +25,7 @@ void turnTo(byte d) {
 void step(byte d) {
   turnTo(d);
   forward30();
-  center();   // MEASURED MOVES LAND CLOSE; THIS FIXES WHAT'S LEFT AGAINST THE WALLS
+  center();   // Measured moves land close; this fixes what's left against the walls
   posX += DX[d];
   posY += DY[d];
 }
@@ -58,10 +58,10 @@ byte nextSide() {
 // Depth-first search: shows each tile's color, goes to the next open unvisited tile,
 // and backtracks along path[] at dead ends. On the start tile it also turns around to check behind.
 // Stops on red, then drives the whole route in hist[] backwards to return to the start.
-// THE BACK SENSOR NOW CHECKS BEHIND, SO THE START TILE NO LONGER TURNS AROUND.
+// The back sensor now checks behind, so the start tile no longer turns around.
 void explore() {
   visited[posX][posY] = true;
-  center();   // EVERY scan() HAPPENS CENTERED, SO THE WALL RULE HOLDS (ALSO ON THE START TILE)
+  center();   // Every scan() happens centered, so the wall rule holds (also on the start tile)
 
   while (true) {
     const char *c = tileColor(70);

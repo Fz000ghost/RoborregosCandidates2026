@@ -1,20 +1,20 @@
 #include <Servo.h>
 #include <Wire.h>
 
-// CLAW
+// Claw
 
 const byte CLAW_PIN = A2;
 const byte CLAW_OPEN = 0;
-const byte CLAW_CLOSED = 45;
+const byte CLAW_CLOSED = 60;
 const unsigned MS_CLAW = 1000;
 Servo claw;
-bool clawOpen = false;   // STARTS CLOSED
+bool clawOpen = false;   // Starts closed
 
-// COLOR SENSOR AND RGB LED (SECOND UNO).
+// Color sensor and RGB LED (second Uno).
 
 const byte COLOR_ADDR = 0x08;
 
-// DISTANCE SENSORS
+// Distance sensors
 
 const byte US_TRIG[4] = {2, 5, A0, 5};
 const byte US_ECHO[4] = {3, 6, A1, A3};
@@ -29,7 +29,7 @@ const int CENTER_TOL_CM = 1;
 const int JUMP_CM = 5;
 int dist[4];
 
-// MOTORS
+// Motors
 
 struct Motor { byte a, b; int8_t dir; };
 
@@ -63,7 +63,7 @@ const int TILT_RAW = 2000;
 float yaw = 0, yawTarget = 0, gyroBias = 0;
 unsigned long lastYawUs = 0;
 
-// MAZE (Pista A)
+// Maze (Pista A)
 
 const int8_t DX[4] = {0, 1, 0, -1};
 const int8_t DY[4] = {1, 0, -1, 0};
@@ -75,26 +75,28 @@ byte posX = GRID / 2, posY = GRID / 2, heading = 0;
 byte path[GRID * GRID], pathLen = 0;
 byte hist[2 * GRID * GRID], histLen = 0;
 
-// LEVELS (Pista B)
+// Levels (Pista B)
 
 const bool TRACK_B = false;
 
 const byte START_X = 1, START_Y = 0, START_HEADING = 0;
 
-const int GRAB_CM = 15;
+const int GRAB1_CM = 25;
+const int GRAB2_CM = 1;
+
 const long MS_PAST = MS_STRAIGHT / 15;
 const long MS_TO_GREEN = MS_STRAIGHT / 4;
 
-const byte ROBOT_W_CM = 19;
+const byte ROBOT_W_CM = 18.5;
 
 const long Y_LIM = 30L - ROBOT_W_CM / 2 - 2;
 const long GAP_HALF = 15;
 const int END_WALL_CM = 45;
-const long COLOR_AHEAD_CM = 0;
+const long COLOR_AHEAD_CM = 10;
 const unsigned MS_CROSS = 300;
 const unsigned MS_ONTO_CP2 = MS_STRAIGHT / 2;
 
-// MAIN
+// Main
 
 void setup() {
   Serial.begin(9600);
@@ -110,7 +112,7 @@ void setup() {
     pinMode(US_ECHO[i], INPUT);
   }
 
-  claw.write(CLAW_CLOSED);   // BEFORE attach(): THE FIRST PULSE IS ALREADY CLOSED, NO JUMP TO 90 DEG
+  claw.write(CLAW_CLOSED); 
   claw.attach(CLAW_PIN);
 
   imuBegin();
@@ -120,7 +122,7 @@ void setup() {
   
   if (TRACK_B) levels();
   else explore();
-
+  
 
 }
 
