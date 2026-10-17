@@ -5,7 +5,7 @@ void setClaw(bool open) {
   if (open == clawOpen) return;
   clawOpen = open;
   claw.write(clawOpen ? CLAW_OPEN : CLAW_CLOSED);
-  delay(MS_CLAW);
+  imuWait(MS_CLAW);
 }
 
 // Opens the claw if closed, closes it if open.

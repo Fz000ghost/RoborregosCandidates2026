@@ -5,7 +5,7 @@ bool isFree(byte i) {
   for (byte k = 0; k < 3; k++) {
     readSensors();
     if (dist[i]) return false;
-    delay(20);
+    imuWait(20);
   }
   return true;
 }
@@ -54,10 +54,12 @@ byte sensorTo(byte d) { return ((d + 2) % 4 + 5 - heading) % 4; }
 // Starts on INICIO facing into the 3x3, and slides onto its ring tile. Checks the ball tile's visible sides.
 // If all three are closed, the opening is the one behind. Goes to the opening, turns its tail toward
 // the ball and grabs it, then faces east, slides to the E tile and drives onto checkpoint 1.
+// It centers on INICIO first.
 // With the back sensor all four sides are checked directly. All four closed means a misread: it checks them all
 // once more, then tries the east side.
 void section1() {
   posX = START_X; posY = START_Y; heading = START_HEADING;
+  center();   // Placed by hand: start from the tile's center, or every move after carries the error
   slide(heading);
   byte open = NO_SIDE;
   bool checked[4] = {false, false, false, false};
@@ -96,7 +98,7 @@ void section3() {
     else if (!strcmp(c, "PINK"))   back30();
     else if (!strcmp(c, "CYAN"))   right30();
     else if (!strcmp(c, "YELLOW")) left30();
-    else if (!strcmp(c, "Light Green")) return;
+    else if (!strcmp(c, "Light Green")) left30();
     else { unclear++; continue; }
     center();   // The next color is read from the tile's middle, not the white edge
     unclear = 0;

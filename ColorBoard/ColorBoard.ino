@@ -72,7 +72,7 @@ void setLed(byte r, byte g, byte b) {
 void displayColor(const char *c) {
   if      (!strcmp(c, "WHITE"))  setLed(255, 255, 255);
   else if (!strcmp(c, "RED"))    setLed(255, 0, 0);
-  else if (!strcmp(c, "GREEN") || !strcmp(c, "Light Green")) setLed(0, 255, 0);
+  else if (!strcmp(c, "GREEN") || !strcmp(c, "Light Green")) setLed(255, 100, 0);
   else if (!strcmp(c, "YELLOW")) setLed(255, 100, 0);
   else if (!strcmp(c, "CYAN"))   setLed(0, 255, 255);
   else if (!strcmp(c, "ORANGE")) setLed(255, 40, 0);

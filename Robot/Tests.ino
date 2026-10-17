@@ -8,6 +8,22 @@ void testWheels() {
   }
 }
 
+// Call once from setup(), robot on the track floor. At 10 %, 20 % ... 100 % (printed to Serial) it goes forward 0.5 s,
+// back 0.5 s, right 0.5 s, left 0.5 s, then waits 1 s. Note the lowest % where it clearly moves all four ways:
+// MIN_PCT = that + 5. NUDGE_PCT and APPROACH_PCT must be above MIN_PCT.
+void testSpeed() {
+  for (int p = 10; p <= 100; p += 10) {
+    Serial.println(p);
+    for (byte k = 0; k < 4; k++) {
+      const byte ORDER[4] = {0, 2, 1, 3};
+      for (byte i = 0; i < 4; i++) setSpeed(i, MOVE[ORDER[k]][i] * p);
+      imuWait(500);
+    }
+    setAll(0, 0, 0, 0);
+    imuWait(1000);
+  }
+}
+
 // One tile forward, back, right and left, then a 90° turn right and left, 1 s apart.
 void testMoves() {
   forward30();     delay(1000);
@@ -66,6 +82,16 @@ void testColor() {
 void testImu() {
   updateYaw();
   displayColor(yaw > 2 ? "GREEN" : yaw < -2 ? "RED" : "");
+}
+
+// Call from loop(). Prints the heading in degrees twice a second (Serial 9600).
+// Push the robot flat against a wall, turn it by hand exactly one full turn (more if the USB cable allows), push it flat
+// against the same wall again and read the number. Then set GYRO_SCALE = old GYRO_SCALE * 360 * turns / |reading|.
+void testGyroScale() {
+  static unsigned long t = 0;
+  lastWheelMs = millis();   // Not "still": a slow hand turn must count in full
+  updateYaw();
+  if (millis() - t >= 500) { t = millis(); Serial.println(yaw, 1); }
 }
 
 // Call from loop(). Centers on the tile, then waits 5 s: move the robot off-center by hand meanwhile.

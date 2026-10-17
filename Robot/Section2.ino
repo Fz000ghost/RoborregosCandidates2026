@@ -18,14 +18,15 @@ const long NO_LINE = 998, NO_GAP = 999;
 
 // Drive forward at full speed until a raw read says WHITE (or RED if stop is 1), or until travel reaches "until".
 // travel = forward ms so far. Returns the color that stopped it, or "" if it reached "until".
-// Time spent correcting heading counts half, like drive(), so travel matches the real distance.
+// Time counts by steer()'s share of full speed, like drive(), so travel matches the real distance.
 const char *creep(byte stop, long until, long &travel) {
   const char *c = "";
-  unsigned long done = 0, last = micros();   // done in microseconds
+  unsigned long last = micros();
+  float done = 0;   // Full-speed microseconds
   while (travel + (long)(done / 1000) < until) {
-    bool corr = steer(FWD);
+    float f = steer(FWD);
     unsigned long now = micros();
-    done += corr ? (now - last) / 2 : now - last;
+    done += (now - last) * f;
     last = now;
     const char *r = getColor();
     if (!strcmp(r, "WHITE") || (stop && !strcmp(r, "RED"))) { c = r; break; }
@@ -64,7 +65,7 @@ bool offSafe() {
   byte n = colorCount, got = 0, off = 0;
   unsigned long t0 = millis();
   while (got < 5 && millis() - t0 < 500) {
-    delay(5);
+    imuWait(5);
     const char *c = getColor();
     if (colorCount == n) continue;
     n = colorCount;
@@ -165,20 +166,74 @@ void crossLines() {
   }
 }
 
-// From checkpoint 1: on to the white strip before the green (the first position anchor), up to line 1, the three lines.
+// Drives forward until the color sensor has left the red tile: 2 fresh reads in a row that are a color but not RED.
+// Then the sensor is just past the section's edge, a known spot. Gives up after maxMs. True if it found the edge.
+// The color board is asked every 5 ms, like slow().
+bool leaveRed(unsigned maxMs) {
+  getColor();
+  byte last = colorCount, n = 0;
+  unsigned long t0 = millis(), lastAsk = 0;
+  bool found = false;
+  while (!found && millis() - t0 < maxMs) {
+    steer(FWD);
+    if (millis() - lastAsk < 5) continue;
+    lastAsk = millis();
+    const char *c = getColor();
+    if (colorCount == last) continue;
+    last = colorCount;
+    if (!strcmp(c, "RED")) n = 0;
+    else if (strcmp(c, "?") && strcmp(c, "NO SIGNAL")) found = ++n >= 2;
+  }
+  setAll(0, 0, 0, 0);
+  imuWait(MS_SETTLE);
+  return found;
+}
+
+// Moves forward or back until the back sensor reads target cm (within CENTER_TOL_CM), nudging by the measured error.
+// At most 6 tries. Like centerAxis(): nudges at NUDGE_PCT, and it stops if the back sensor sees nothing or the
+// error stops shrinking.
+void backTo(int target) {
+  int prev = 1000;
+  for (byte k = 0; k < 6; k++) {
+    int d = readCm3(3);
+    int e = d - target;   // + = too far forward
+    if (!d || abs(e) <= CENTER_TOL_CM || abs(e) >= prev) return;
+    prev = abs(e);
+    const int8_t *w = MOVE[e > 0 ? 2 : 0];
+    driveAt(w, max((unsigned long)NUDGE_MS, abs(e) * MS_STRAIGHT / 30), NUDGE_PCT, 4);
+  }
+}
+
+// From checkpoint 1 into column 1, ending with the color sensor PROBE_START_CM before line 1.
+// 1. Forward until the sensor leaves red (the section's edge), then to column 1's middle. Lines lie on tile borders, so
+//    there the sensor is still 15 - COLOR_AHEAD_CM before line 1: the entry can't reach it.
+// 2. Checkpoint 1 is in line with one row, so the other row has the section's start wall behind column 1. It strafes to
+//    that row (up or down, whichever it isn't in), checking the wall is there, else it tries the first row.
+// 3. Backs or advances until the back sensor reads the distance that puts the color sensor PROBE_START_CM before line 1
+//    (a centered robot reads BACK_CENTER_CM), so the start doesn't depend on how far the entry went.
+void enterSection2() {
+  if (leaveRed(MS_STRAIGHT)) moveCm(0, 15 + COLOR_AHEAD_CM - 1);   // Sensor ~1 cm past the edge when it stops
+  long y = sideY(0);
+  long row = y >= 0 ? -GAP_HALF : GAP_HALF;   // The row it isn't in
+  strafeTo(row, y);
+  if (!isWall(3, readCm3(3))) { strafeTo(-row, row); row = -row; }
+  backTo(BACK_CENTER_CM + 15 - PROBE_START_CM - COLOR_AHEAD_CM);
+  strafeTo(row, row);   // backTo() drives straight only; square up sideways again
+  settleHeading();
+}
+
+// From checkpoint 1: enterSection2(), the three lines.
 // In column 4, checkpoint 2 lines up with one row and the other row has its end wall right ahead: it picks the open row,
 // crosses the white strip (not a penalty line) and drives onto red.
 void section2() {
-  long t = 0;
-  creep(0, MS_STRAIGHT / 2, t);
-  moveCm(0, 30 - PROBE_START_CM);
+  enterSection2();
   crossLines();
   long y = sideY(0);
   strafeTo(GAP_HALF, y);
   y = GAP_HALF;
   int f = readCm(1);
   if (f && f < CP2_WALL_CM) strafeTo(-GAP_HALF, y);
-  t = 0;
+  long t = 0;
   while (true) {
     const char *c = creep(1, MS_STRAIGHT, t);
     if (!strcmp(c, "RED")) { if (isRed()) break; continue; }

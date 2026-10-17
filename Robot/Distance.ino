@@ -11,10 +11,16 @@ int readCm(byte i) {
   digitalWrite(US_TRIG[i], HIGH);
   delayMicroseconds(10);
   digitalWrite(US_TRIG[i], LOW);
-  unsigned long us = pulseIn(US_ECHO[i], HIGH, US_TIMEOUT_US);
+  unsigned long us = pulseInLong(US_ECHO[i], HIGH, US_TIMEOUT_US);   // pulseIn() reads short with the PWM interrupt
   lastPing = millis();
   int cm = us / 58;
   return !us || cm > US_MAX_CM ? 0 : max(cm, 1);
+}
+
+// Median of 3 pings of sensor i in cm, so one bad echo can't count. 0 = no echo on 2 or more.
+int readCm3(byte i) {
+  int a = readCm(i), b = readCm(i), c = readCm(i);
+  return max(min(a, b), min(max(a, b), c));
 }
 
 // True if reading d of sensor i is a wall of this tile.

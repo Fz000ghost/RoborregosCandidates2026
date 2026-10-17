@@ -24,7 +24,7 @@ const char *tileColor(byte minPct) {
   unsigned long t0 = millis();
   for (byte i = 0; i < N; ) {
     if (millis() - t0 > 1000) return "?";
-    delay(5);   // The board reads ~30 times/s: don't flood it with requests
+    imuWait(5);   // The board reads ~30 times/s: don't flood it with requests
     const char *c = getColor();
     if (colorCount == last) continue;
     last = colorCount;
