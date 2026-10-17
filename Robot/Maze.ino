@@ -1,14 +1,15 @@
 // MAZE (Pista A)
 
 // Marks which sides (L, F, R) are open in freeSide[], by majority of 3 reads: one bad read must not hide an opening or invent one.
+// NOW ALSO THE BACK (i = 3): (heading + 3 + 3) % 4 IS THE SIDE BEHIND, SO THE SAME FORMULA WORKS.
 void scan() {
-  byte frees[3] = {0, 0, 0};
+  byte frees[4] = {0, 0, 0, 0};
   for (byte k = 0; k < 3; k++) {
     readSensors();
-    for (byte i = 0; i < 3; i++) frees[i] += !dist[i];
+    for (byte i = 0; i < 4; i++) frees[i] += !dist[i];
     delay(20);
   }
-  for (byte i = 0; i < 3; i++) if (frees[i] >= 2) freeSide[(heading + 3 + i) % 4] = true;
+  for (byte i = 0; i < 4; i++) if (frees[i] >= 2) freeSide[(heading + 3 + i) % 4] = true;
 }
 
 // Turns in place to face direction d (0 N, 1 E, 2 S, 3 W), the short way.
@@ -24,6 +25,7 @@ void turnTo(byte d) {
 void step(byte d) {
   turnTo(d);
   forward30();
+  center();   // MEASURED MOVES LAND CLOSE; THIS FIXES WHAT'S LEFT AGAINST THE WALLS
   posX += DX[d];
   posY += DY[d];
 }
@@ -32,6 +34,7 @@ void step(byte d) {
 void slide(byte d) {
   byte r = (d + 4 - heading) % 4;
   if (r == 0) forward30(); else if (r == 1) right30(); else if (r == 2) back30(); else left30();
+  center();
   posX += DX[d];
   posY += DY[d];
 }
@@ -55,9 +58,10 @@ byte nextSide() {
 // Depth-first search: shows each tile's color, goes to the next open unvisited tile,
 // and backtracks along path[] at dead ends. On the start tile it also turns around to check behind.
 // Stops on red, then drives the whole route in hist[] backwards to return to the start.
+// THE BACK SENSOR NOW CHECKS BEHIND, SO THE START TILE NO LONGER TURNS AROUND.
 void explore() {
   visited[posX][posY] = true;
-  bool startTile = true;
+  center();   // EVERY scan() HAPPENS CENTERED, SO THE WALL RULE HOLDS (ALSO ON THE START TILE)
 
   while (true) {
     const char *c = tileColor(70);
@@ -67,12 +71,6 @@ void explore() {
     memset(freeSide, 0, sizeof(freeSide));
     scan();
     byte d = nextSide();
-    if (d == NO_SIDE && startTile) {
-      turnTo((heading + 2) % 4);
-      scan();
-      d = nextSide();
-    }
-    startTile = false;
     if (d != NO_SIDE) path[pathLen++] = d;
     else if (pathLen) d = (path[--pathLen] + 2) % 4;
     else { return; }

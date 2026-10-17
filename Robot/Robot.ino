@@ -1,49 +1,67 @@
 #include <Servo.h>
+#include <Wire.h>
 
 // CLAW
 
-const byte CLAW_PIN = A5;
-const byte CLAW_OPEN = 90;
-const byte CLAW_CLOSED = 0;
-const unsigned MS_CLAW = 500;
+const byte CLAW_PIN = A2;
+const byte CLAW_OPEN = 0;
+const byte CLAW_CLOSED = 45;
+const unsigned MS_CLAW = 1000;
 Servo claw;
-bool clawOpen = true;
+bool clawOpen = false;   // STARTS CLOSED
 
-// COLOR SENSOR
+// COLOR SENSOR AND RGB LED (SECOND UNO).
 
-const byte S2 = A1, S3 = A0, COLOR_OUT = A2;
-int rgb[3];
-
-// RGB LED
-
-const int LED_R = 3, LED_G = 6, LED_B = 5;
+const byte COLOR_ADDR = 0x08;
 
 // DISTANCE SENSORS
 
-const byte SENSOR_PIN[3] = {2, A4, A3};
-int dist[3];
+const byte US_TRIG[4] = {2, 5, A0, 5};
+const byte US_ECHO[4] = {3, 6, A1, A3};
+const unsigned long US_TIMEOUT_US = 12000;
+const int US_MAX_CM = 200;
+const int SIDE_CENTER_CM = 5;
+const int FRONT_CENTER_CM = 5;
+const int BACK_CENTER_CM = 5;
+const int CENTER_CM[4] = {SIDE_CENTER_CM, FRONT_CENTER_CM, SIDE_CENTER_CM, BACK_CENTER_CM};
+const int WALL_MARGIN_CM = 9;
+const int CENTER_TOL_CM = 1;
+const int JUMP_CM = 5;
+int dist[4];
 
 // MOTORS
 
 struct Motor { byte a, b; int8_t dir; };
 
 Motor m[4] = {
-  {13, 10, 1},
-  {12, 11, 1},
   { 4,  7, 1},
   { 8,  9, 1},
+  {13, 12, 1},
+  {11, 10, 1},
 };
 
 // Wheel signs (FL, FR, RL, RR) for each direction.
-#define FWD    1, -1,  -1, -1
-#define BACK  -1,  1, 1,  1
-#define RIGHT -1, -1,  -1,  1
-#define LEFT   1,  1, 1, -1
+#define FWD    1,  1,  1,  1
+#define BACK  -1, -1, -1, -1
+#define RIGHT 1,  -1,  -1, 1
+#define LEFT   -1,  1,  1, -1
+#define ROT_R  1, -1,  1, -1 
 
-const unsigned MS_STRAIGHT = 2450;
-const unsigned MS_STRAFE = 2450;
+const unsigned MS_STRAIGHT = 1700;
+const unsigned MS_STRAFE = 1700;
 const unsigned MS_TURN90 = 1670;
 const unsigned MS_SETTLE = 200;
+
+// IMU
+
+const int8_t GYRO_SIGN = 1;
+const float HOLD_DEG = 1.0; 
+const float TURN_LEAD_DEG = 6.0;
+const float TURN_TOL_DEG = 1.5;
+const unsigned NUDGE_MS = 40;
+const int TILT_RAW = 2000;
+float yaw = 0, yawTarget = 0, gyroBias = 0;
+unsigned long lastYawUs = 0;
 
 // MAZE (Pista A)
 
@@ -61,52 +79,53 @@ byte hist[2 * GRID * GRID], histLen = 0;
 
 const bool TRACK_B = false;
 
-// INICIO changes per round: set it in calibration. Cells: 3x3 = 1..3 (x east, y north), CP1 at (4,2).
-// START_HEADING = direction the robot faces, into the 3x3: 0 N, 1 E, 2 S, 3 W. Drawn layout: (1, 0) facing N.
 const byte START_X = 1, START_Y = 0, START_HEADING = 0;
 
-const unsigned MS_GRAB_BACK = MS_STRAIGHT / 2;
+const int GRAB_CM = 15;
 const long MS_PAST = MS_STRAIGHT / 15;
 const long MS_TO_GREEN = MS_STRAIGHT / 4;
 
-// Robot width
 const byte ROBOT_W_CM = 19;
 
-const long Y_LIM = (30L - ROBOT_W_CM / 2 - 2) * MS_STRAFE / 30;
-const long GAP_HALF = MS_STRAFE / 2;
+const long Y_LIM = 30L - ROBOT_W_CM / 2 - 2;
+const long GAP_HALF = 15;
+const int END_WALL_CM = 45;
+const long COLOR_AHEAD_CM = 0;
 const unsigned MS_CROSS = 300;
 const unsigned MS_ONTO_CP2 = MS_STRAIGHT / 2;
 
 // MAIN
 
-// Runs once at power-up: sets every pin, opens the claw, waits 3 s to place the robot on its tile, 
-// then runs Pista B (levels) or Pista A (explore) depending on TRACK_B.
-//To run a test, call it from Tests.ino here instead.
 void setup() {
   Serial.begin(9600);
+  Serial.println("start");
+
 
   for (byte i = 0; i < 4; i++) {
     pinMode(m[i].a, OUTPUT);
     pinMode(m[i].b, OUTPUT);
   }
-  pinMode(S2, OUTPUT);
-  pinMode(S3, OUTPUT);
-  pinMode(COLOR_OUT, INPUT);
+  for (byte i = 0; i < 4; i++) {
+    pinMode(US_TRIG[i], OUTPUT);
+    pinMode(US_ECHO[i], INPUT);
+  }
 
-  pinMode(LED_R, OUTPUT);
-  pinMode(LED_G, OUTPUT);
-  pinMode(LED_B, OUTPUT);
-
+  claw.write(CLAW_CLOSED);   // BEFORE attach(): THE FIRST PULSE IS ALREADY CLOSED, NO JUMP TO 90 DEG
   claw.attach(CLAW_PIN);
-  claw.write(CLAW_OPEN);
 
-  delay(3000);
-
-  
-  if (TRACK_B) levels();
-  else explore();
+  imuBegin();
+  delay(2000);
+  imuCalibrate();
 
   
+  /*if (TRACK_B) levels();
+  else explore();*/
+  
+
 }
 
-void loop() {testColor();}
+void loop() {
+//testColor();
+//testDistance();
+
+}
