@@ -20,9 +20,9 @@ const byte US_TRIG[4] = {2, 5, A0, 5};
 const byte US_ECHO[4] = {3, 6, A1, A3};
 const unsigned long US_TIMEOUT_US = 12000;
 const int US_MAX_CM = 200;
-const int SIDE_CENTER_CM = 5;
+const int SIDE_CENTER_CM = 8;
 const int FRONT_CENTER_CM = 5;
-const int BACK_CENTER_CM = 5;
+const int BACK_CENTER_CM = 4;
 const int CENTER_CM[4] = {SIDE_CENTER_CM, FRONT_CENTER_CM, SIDE_CENTER_CM, BACK_CENTER_CM};
 const int WALL_MARGIN_CM = 9;
 const int CENTER_TOL_CM = 1;
@@ -118,14 +118,14 @@ void setup() {
   imuCalibrate();
 
   
-  /*if (TRACK_B) levels();
-  else explore();*/
-  
+  if (TRACK_B) levels();
+  else explore();
+
 
 }
 
 void loop() {
 //testColor();
 //testDistance();
-
+//testImu();
 }
